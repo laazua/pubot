@@ -1,0 +1,23 @@
+---
+###### pubot程序配置文件
+
+address: 0.0.0.0:8088
+readTimeout: 60m   # 格式: 1h30m10s
+writeTimeout: 60m  # 格式: 1h30m10s
+pwdSalt: ND#in2dAmk&dN7o8
+tokenExpired: 1h   # 格式: 1h30m10s
+secretKey: 2na^7Lx5pb25B
+
+logPath: ./logs
+logFormat: text   # text | json
+logConsole: false
+logLevel: info    # debug | info | warn | error
+
+pgHost: 192.168.165.88
+pgPort: 5432
+pgName: pubot
+pgUser: postgres
+pgPass: 123456abc
+pgPool: 10
+pgMaxIdle: 30
+pgLifeTime: 60s  # 格式: 1h30m10s

@@ -1,0 +1,19 @@
+---
+# 流水线模板
+
+name: test
+
+build:
+  - command1
+  - command2
+  - command3
+  - ...
+
+deploy:
+  # linx | docker | k8s
+  platform: linux 
+  run:
+    - command1
+    - command2
+    - command3
+    - ...
