@@ -5,23 +5,24 @@ import (
 
 	"pubot/internal/api/dto"
 	"pubot/internal/core/logx"
+	"pubot/internal/core/token"
 	"pubot/internal/core/web"
 	"pubot/internal/service"
 )
 
 type AuthController struct {
-	authService *service.Auth
+	authService *service.AuthService
 }
 
-func NewAuthController(authservice *service.Auth) *AuthController {
+func NewAuthController(authservice *service.AuthService) *AuthController {
 	return &AuthController{authService: authservice}
 }
 
-func (authController *AuthController) RegisterRoute(route *web.Router) {
-	route.Post("/login", authController.login)
-	route.Get("/test", authController.testApi)
+func (authController *AuthController) RegisterRouter(router *web.Router) {
+	router.Post("/login", authController.login)
 }
 
+// 登录(ok)
 func (authController *AuthController) login(w http.ResponseWriter, r *http.Request) {
 	var authUser dto.AuthUser
 	if err := web.Bind(r, &authUser); err != nil {
@@ -34,10 +35,12 @@ func (authController *AuthController) login(w http.ResponseWriter, r *http.Reque
 		web.Failure(w, web.Map{"code": 400, "message": err.Error()})
 		return
 	}
-	web.Success(w, web.Map{"code": 200, "message": "user login success"})
-}
-
-func (authController *AuthController) testApi(w http.ResponseWriter, r *http.Request) {
-	logx.Info("this is a test")
-	web.Success(w, web.Map{"code": 200, "message": "this is a test api"})
+	// 生成token
+	tokenStr, err := token.Create(authUser.Name)
+	if err != nil {
+		logx.Error("生成token失败", logx.String("Err", err.Error()))
+		web.Failure(w, web.Map{"code": 400, "message": err.Error()})
+		return
+	}
+	web.Success(w, web.Map{"code": 200, "message": "user login success", "token": tokenStr})
 }

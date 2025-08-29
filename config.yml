@@ -11,7 +11,7 @@ secretKey: 2na^7Lx5pb25B
 logPath: ./logs
 logFormat: text   # text | json
 logConsole: false
-logLevel: info    # debug | info | warn | error
+logLevel: debug    # debug | info | warn | error
 
 pgHost: 192.168.165.88
 pgPort: 5432

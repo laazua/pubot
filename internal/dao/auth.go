@@ -2,23 +2,23 @@ package dao
 
 import (
 	"fmt"
-	"pubot/internal/model"
 	"pubot/internal/core/pwd"
+	"pubot/internal/model"
 
 	"gorm.io/gorm"
 )
 
-type Auth struct {
+type AuthDao struct {
 	db *gorm.DB
 }
 
-func NewAuth(db *gorm.DB) *Auth {
-	return &Auth{db: db}
+func NewAuthDao(db *gorm.DB) *AuthDao {
+	return &AuthDao{db: db}
 }
 
-func (auth *Auth) Sign(user model.User) error {
+func (authDao *AuthDao) Sign(user model.User) error {
 	var modelUser model.User
-	err := auth.db.First(&modelUser, user.Name).Error
+	err := authDao.db.Find(&modelUser).Where("name = ?", user.Name).Error
 	if err != nil {
 		return err
 	}

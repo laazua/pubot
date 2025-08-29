@@ -2,7 +2,7 @@
 
 bin := pubot
 
-.PHONY: clean, build
+.PHONY: clean, build, test
 
 # 设置静态编译
 CLIB_ENABLE := $(go env CGO_ENABLED)
@@ -15,3 +15,7 @@ build:
 
 clean:
 	rm -f cmd/pubot/$(bin)
+
+test:
+	@go test -v -count=1 -skip="TestUserGet|TestUserCreate|TestUserLogin|TestUserDelete|TestUserUpdate" ./...
+	

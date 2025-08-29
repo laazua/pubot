@@ -46,20 +46,24 @@ func startPubot() {
 		start <- err
 	}
 	// 依赖组装
-	authDao := dao.NewAuth(dB)
-	userDao := dao.NewUser(dB)
-	authService := service.NewAuth(authDao)
-	userService := service.NewUser(userDao)
+	authDao := dao.NewAuthDao(dB)
+	authService := service.NewAuthService(authDao)
 	authController := api.NewAuthController(authService)
+	userDao := dao.NewUserDao(dB)
+	userService := service.NewUserService(userDao)
 	userController := api.NewUserController(userService)
+	taskDao := dao.NewTaskDao(dB)
+	taskService := service.NewTaskService(taskDao)
+	taskController := api.NewTaskController(taskService)
 	// 路由注册
-	route := web.NewRouter()
-	v1 := route.Group("/v1")
-	authController.RegisterRoute(v1)
-	userController.RegisterRoute(v1)
+	router := web.NewRouter()
+	api := router.Group("/api")
+	authController.RegisterRouter(api)
+	userController.RegisterRouter(api)
+	taskController.RegisterRouter(api)
 	// 实例化http server
 	server := http.Server{
-		Handler:      route,
+		Handler:      router,
 		Addr:         config.Get().Address,
 		ReadTimeout:  config.Get().ReadTimeout,
 		WriteTimeout: config.Get().WriteTimeout,
