@@ -10,7 +10,7 @@ import (
 )
 
 func TestUserLogin(t *testing.T) {
-	user := []byte(`{"name": "admin", "password": "123456"}`)
+	user := []byte(`{"name": "zhangsan", "password": "123456abc"}`)
 	client := http.Client{Timeout: time.Duration(time.Second * 30)}
 	req, err := http.NewRequest("POST", "http://127.0.0.1:8088/api/login", bytes.NewBuffer(user))
 	if err != nil {

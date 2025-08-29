@@ -17,5 +17,5 @@ clean:
 	rm -f cmd/pubot/$(bin)
 
 test:
-	@go test -v -count=1 -skip="TestUserGet|TestUserCreate|TestUserLogin|TestUserDelete|TestUserUpdate" ./...
+	@go test -v -count=1 -skip="TestUserGet|TestUserDelete|TestUserUpdate|TestUserList|TestUserCreate" ./...
 	

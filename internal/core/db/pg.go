@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"pubot/internal/core/config"
 	"pubot/internal/model"
@@ -29,7 +30,11 @@ func Init() error {
 	//db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
 	//	Logger: logger.Default.LogMode(logger.Info),
 	//})
-	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+		NowFunc: func() time.Time {
+			return time.Now().Local() // 使用本地时间
+		},
+	})
 	if err != nil {
 		initErr = fmt.Errorf("打开数据库失败: %w", err)
 		return initErr

@@ -12,7 +12,7 @@ type User struct {
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt
 	Name      string `gorm:"name"`
-	Email     string `gorm:"emal"`
+	Email     string `gorm:"email;uniqueIndex"`
 	Password  string `gorm:"password"`
 	IsAdmin   bool   `gorm:"is_admin"`
 }

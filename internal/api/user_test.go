@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// 封装发送http请求
 func req(method, uri string, data []byte) ([]byte, error) {
 	var err error
 	var req *http.Request
@@ -34,7 +35,7 @@ func req(method, uri string, data []byte) ([]byte, error) {
 }
 
 func TestUserCreate(t *testing.T) {
-	user := []byte(`{"name": "lis", "email": "513531614215@qq.com", "password":"123456", "is_admin": false}`)
+	user := []byte(`{"name": "wangwu", "email": "2222222222@qq.com", "password":"123456abc", "is_admin": false}`)
 	body, err := req(http.MethodPost, "/api/user", user)
 	if err != nil {
 		t.Error(err.Error())

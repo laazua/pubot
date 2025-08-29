@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"fmt"
 	"pubot/internal/model"
 
 	"gorm.io/gorm"
@@ -15,6 +16,10 @@ func NewUserDao(db *gorm.DB) *UserDao {
 }
 
 func (userDao *UserDao) Create(modelUser model.User) error {
+	var userExists model.User
+	if userDao.db.Where("email = ?", modelUser.Email).First(&userExists).Error == nil {
+		return fmt.Errorf("用户已经存在")
+	}
 	return userDao.db.Create(&modelUser).Error
 }
 
