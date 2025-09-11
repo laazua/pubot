@@ -1,0 +1,14 @@
+---
+# pubot程序配置
+listen: 0.0.0.0:7777
+secretKey: pMbHSl3R9  # token密钥
+expiredTime: 60m  # token过期时间
+
+pgHost: 192.168.165.88
+pgPort: 5432
+pgName: pubot
+pgUser: postgres
+pgPass: 123456abc
+pgPool: 10
+pgMaxIdle: 30
+pgLifeTime: 60s  # 格式: 1h30m10s
