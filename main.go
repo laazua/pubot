@@ -18,6 +18,10 @@ import (
 )
 
 func main() {
+	// 切换工作目录
+	if err := utils.ChWorkSpace(config.Get().WorkSpace); err != nil {
+		os.Exit(-1)
+	}
 	// 依赖注入
 	userDao := dao.NewUserDao(dao.GetDb())
 	userService := service.NewUserService(userDao)

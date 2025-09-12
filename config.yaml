@@ -3,6 +3,7 @@
 listen: 0.0.0.0:7777
 secretKey: pMbHSl3R9  # token密钥
 expiredTime: 60m  # token过期时间
+workSpace: /opt/codes/work # 工作目录
 
 pgHost: 192.168.165.88
 pgPort: 5432

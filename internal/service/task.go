@@ -122,6 +122,7 @@ func (ts *TaskService) Execute(id uint) error {
 		// 1️⃣ 开始执行任务：持久化 running 状态
 		t.Status = string(utils.TaskRunning)
 		if err := ts.taskDao.Save(t); err != nil {
+			t.Count++
 			ts.hub.Broadcast(utils.TaskStatus{ID: t.ID, Status: utils.TaskError, Count: t.Count})
 			return
 		}
@@ -131,6 +132,7 @@ func (ts *TaskService) Execute(id uint) error {
 		if err := yaml.Unmarshal([]byte(t.YAML), &parsed); err != nil {
 			// YAML 解析失败 → error
 			t.Status = string(utils.TaskError)
+			t.Count++
 			_ = ts.taskDao.Save(t)
 			ts.hub.Broadcast(utils.TaskStatus{ID: t.ID, Status: utils.TaskError, Count: t.Count})
 			return
@@ -138,28 +140,50 @@ func (ts *TaskService) Execute(id uint) error {
 
 		// 2️⃣ 执行 build 阶段
 		if buildSteps, ok := parsed["build"].([]interface{}); ok {
-			for _, cmd := range buildSteps {
-				if inerr := utils.RunCmd(cmd.(string)); inerr != nil {
-					t.Status = string(utils.TaskError)
-					_ = ts.taskDao.Save(t)
-					ts.hub.Broadcast(utils.TaskStatus{ID: t.ID, Status: utils.TaskError, Count: t.Count})
-					return
+			var cmds []string
+			for _, step := range buildSteps {
+				if s, ok := step.(string); ok {
+					cmds = append(cmds, s)
 				}
+			}
+
+			if err := utils.RunCommands(cmds); err != nil {
+				// 执行失败，更新任务状态
+				t.Status = string(utils.TaskError)
+				t.Count++
+				_ = ts.taskDao.Save(t)
+				ts.hub.Broadcast(utils.TaskStatus{
+					ID:     t.ID,
+					Status: utils.TaskError,
+					Count:  t.Count,
+				})
+				return
 			}
 		}
 
 		// 3️⃣ 执行 deploy 阶段
 		if deploy, ok := parsed["deploy"].(map[string]interface{}); ok {
 			if runSteps, ok := deploy["run"].([]interface{}); ok {
-				for _, cmd := range runSteps {
-					if inerr := utils.RunCmd(cmd.(string)); inerr != nil {
-						t.Status = string(utils.TaskError)
-						_ = ts.taskDao.Save(t)
-						ts.hub.Broadcast(utils.TaskStatus{ID: t.ID, Status: utils.TaskError, Count: t.Count})
-						return
+				var cmds []string
+				for _, step := range runSteps {
+					if s, ok := step.(string); ok {
+						cmds = append(cmds, s)
 					}
 				}
+				if err := utils.RunCommands(cmds); err != nil {
+					// 执行失败，更新任务状态
+					t.Status = string(utils.TaskError)
+					t.Count++
+					_ = ts.taskDao.Save(t)
+					ts.hub.Broadcast(utils.TaskStatus{
+						ID:     t.ID,
+						Status: utils.TaskError,
+						Count:  t.Count,
+					})
+					return
+				}
 			}
+
 		}
 
 		// 4️⃣ 成功完成：Count +1 并保存状态 success

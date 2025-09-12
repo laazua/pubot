@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"reflect"
 	"strings"
 )
@@ -66,14 +68,62 @@ func Failure(w http.ResponseWriter, m Map) {
 	json.NewEncoder(w).Encode(m)
 }
 
-func RunCmd(command string) error {
+func RunCmd(command, workDir string) error {
 	cmd := exec.Command("bash", "-c", command)
-	slog.Info("执行命令", slog.String("Cmd", command))
+	if workDir != "" {
+		cmd.Dir = workDir
+	}
+
+	slog.Info("执行命令", slog.String("Cmd", command), slog.String("Dir", cmd.Dir))
+
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		slog.Error("执行命令报错", slog.String("Err", err.Error()))
 		return err
 	}
 	slog.Info("执行命令结果", slog.String("Out", string(output)))
+	return nil
+}
+
+// RunCommands 支持 cd 持久化
+func RunCommands(cmds []string) error {
+	// 当前目录（初始为程序启动目录）
+	currentDir, _ := os.Getwd()
+
+	for _, raw := range cmds {
+		c := strings.TrimSpace(raw)
+		if c == "" {
+			continue
+		}
+
+		// 处理 cd
+		if strings.HasPrefix(c, "cd ") {
+			dir := strings.TrimSpace(strings.TrimPrefix(c, "cd "))
+			// 转换成绝对路径
+			if !filepath.IsAbs(dir) {
+				dir = filepath.Join(currentDir, dir)
+			}
+			if _, err := os.Stat(dir); err != nil {
+				return errors.New("目录不存在: " + dir)
+			}
+			currentDir = dir
+			slog.Info("切换目录", slog.String("Dir", currentDir))
+			continue
+		}
+
+		// 普通命令
+		if err := RunCmd(c, currentDir); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func ChWorkSpace(path string) error {
+	err := os.Chdir(path)
+	if err != nil {
+		slog.Error("切换工作目录失败,检查是否配置")
+		return err
+	}
 	return nil
 }

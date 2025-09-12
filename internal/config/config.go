@@ -19,6 +19,7 @@ type Config struct {
 	SecretKey   string        `yaml:"secretKey" default:"1adnfdjkfa"`  // token key
 	ExpiredTime time.Duration `yaml:"expiredTime" default:"12h"`       // token过期时间
 	PgHost      string        `yaml:"pgHost" default:"127.0.0.1"`      // pgdb主机
+	WorkSpace   string        `yaml:"workSpace" default:"."`           // 工作目录
 	PgPort      int           `yaml:"pgPort" default:"5432"`           // pgdb端口
 	PgUser      string        `yaml:"pgUser"`                          // pgdb认证用户
 	PgPass      string        `yaml:"pgPass"`                          // pgdb认证密码
