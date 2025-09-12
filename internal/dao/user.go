@@ -56,9 +56,8 @@ func (td *UserDao) Save(dbUser *model.PbUser) error {
 
 func (td *UserDao) Auth(dbUser *model.PbUser) (*model.PbUser, error) {
 	var user model.PbUser
-	if err := td.db.Find(&user).Where("name = ?", dbUser.Name).Error; err != nil {
+	if err := td.db.Where("name = ?", dbUser.Name).First(&user).Error; err != nil {
 		return nil, err
 	}
-
 	return &user, nil
 }

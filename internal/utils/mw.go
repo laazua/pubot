@@ -36,7 +36,6 @@ func AuthMw(next http.Handler) http.Handler {
 			Failure(w, Map{"code": 403, "message": "token无效"})
 			return
 		}
-
 		// 将用户放入 context
 		user := &model.PbUser{
 			ID:   claims.UserID,

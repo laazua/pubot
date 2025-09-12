@@ -3,6 +3,8 @@ package api
 import (
 	"log/slog"
 	"net/http"
+	"strconv"
+	"sync"
 
 	"pubot/internal/config"
 	"pubot/internal/dto"
@@ -14,6 +16,7 @@ import (
 )
 
 type UserApi struct {
+	mu          sync.Mutex
 	userService *service.UserService
 }
 
@@ -24,7 +27,7 @@ func NewUserApi(userService *service.UserService) *UserApi {
 func (ua *UserApi) Register(router *mux.Router) {
 	router.HandleFunc("/user", ua.create).Methods("POST")
 	router.HandleFunc("/user/{id:[0-9]+}", ua.delete).Methods("DELETE")
-	router.HandleFunc("/user/{id:[0-9]+}", ua.update).Methods("UPDATE")
+	router.HandleFunc("/user/{id:[0-9]+}", ua.update).Methods("PUT")
 	router.HandleFunc("/user", ua.list).Methods("GET")
 	router.HandleFunc("/user/{id:[0-9]+}", ua.get).Methods("GET") // 限制id只能是数字
 	router.HandleFunc("/user/info", ua.info).Methods("GET")
@@ -37,7 +40,6 @@ func (ua *UserApi) Login(w http.ResponseWriter, r *http.Request) {
 		utils.Failure(w, utils.Map{"code": 403, "message": "解析参数失败"})
 		return
 	}
-
 	// 校验用户名密码
 	user, err := ua.userService.Auth(req)
 	if err != nil {
@@ -70,9 +72,48 @@ func (ua *UserApi) create(w http.ResponseWriter, r *http.Request) {
 	utils.Success(w, utils.Map{"code": 200, "message": "创建用户成功", "data": user})
 }
 
-func (ua *UserApi) delete(w http.ResponseWriter, r *http.Request) {}
+func (ua *UserApi) delete(w http.ResponseWriter, r *http.Request) {
+	userIdStr := mux.Vars(r)["id"]
+	// 如果需要数字类型，需要手动转换
+	userId, err := strconv.ParseUint(userIdStr, 10, 0)
+	if err != nil {
+		slog.Error("无效的task ID", slog.Any("Err", err.Error()))
+		utils.Failure(w, utils.Map{"code": 400, "message": "无效的 task ID"})
+		return
+	}
+	if err := ua.userService.Delete(uint(userId)); err != nil {
+		slog.Error("删除用户失败", slog.String("Err", err.Error()))
+		utils.Failure(w, utils.Map{"code": 503, "message": "删除用户失败"})
+		return
+	}
+	utils.Success(w, utils.Map{"code": 200, "message": "删除用户成功"})
+}
 
-func (ua *UserApi) update(w http.ResponseWriter, r *http.Request) {}
+func (ua *UserApi) update(w http.ResponseWriter, r *http.Request) {
+	ua.mu.Lock()
+	defer ua.mu.Unlock()
+	userIdStr := mux.Vars(r)["id"]
+	// 如果需要数字类型，需要手动转换
+	userId, err := strconv.ParseUint(userIdStr, 10, 0)
+	if err != nil {
+		slog.Error("无效的task ID", slog.Any("Err", err.Error()))
+		utils.Failure(w, utils.Map{"code": 400, "message": "无效的 task ID"})
+		return
+	}
+	var req dto.UserRequest
+	if err := utils.Bind(r, &req); err != nil {
+		slog.Error("绑定请求体参数失败", slog.String("Err", err.Error()))
+		utils.Failure(w, utils.Map{"code": 200, "message": "绑定请求头参数失败"})
+		return
+	}
+	user, err := ua.userService.Update(uint(userId), req)
+	if err != nil {
+		slog.Error("更新用户失败", slog.String("Err", err.Error()))
+		utils.Failure(w, utils.Map{"code": 503, "message": "跟新用户失败"})
+		return
+	}
+	utils.Success(w, utils.Map{"code": 200, "message": "更新用户成功", "data": user})
+}
 
 func (ua *UserApi) get(w http.ResponseWriter, r *http.Request) {}
 

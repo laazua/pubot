@@ -43,7 +43,7 @@ func main() {
 	wsTaskRouter.Use(utils.AuthWsMw) // 先 Use，再注册路由
 	wsTaskRouter.HandleFunc("/task", hub.ServeWS)
 	// 前端静态资源（放在最后，避免覆盖API路由）
-	// r.PathPrefix("/").Handler(http.FileServer(http.Dir("./web")))
+	router.PathPrefix("/").Handler(api.WebHandler())
 	server := http.Server{
 		Handler: router,
 		Addr:    config.Get().Listen,
